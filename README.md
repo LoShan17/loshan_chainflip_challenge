@@ -20,10 +20,22 @@ Creating a subscription framework and OrderBook as detailed in "Developer_Test_J
 ## Things I wasn't sure about:
 
 - Price representation:
-  as an example
-  - I tried
-  - I tried
-    I think the OrderBook logic should still work on the generalized tick model of the exchange
-    but the final representtaion still doesn't make sense to me.
+  as an example from a price update message from ETH/USDC
+
+  - I tried from the tick using the functions in order book:
+    In [23]: tick_to_price(-153861, ASSETS_PRECISION['ETH'], ASSETS_PRECISION['USDC'])
+    Out[23]: 208082.59467484668
+
+  - I tried from the price representation:
+    In [28]: price_returned = int("0x37db83b756d0a7932f35b7479ed", 16)
+    In [29]: price_to_market_price(price_returned, ASSETS_PRECISION['ETH'], ASSETS_PRECISION['USDC'])
+    Out[29]: 208085.32304775115
+
+    the 2 seems consistent but I still don't quite understand how the get the 2360.19 ETH/USDC
+    price of today as I am writing.
+
+    I think the OrderBook logic should still work on the generalized tick model when inserting orders.
+
 - cf_subscribe_prewitness_swaps doesn't really return any inbound message even if left run for a while
-  maybe this is expected on the perseverance chain but then I am not sure those few price change messages how are they generated.
+  maybe this is expected on the perseverance chain but then I am not sure how those few price change messages
+  end up being generated.

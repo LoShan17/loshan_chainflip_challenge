@@ -32,7 +32,8 @@ def parse_arguments():
 
 # prewitnessed swaps subscription string json
 # {"jsonrpc":"2.0","id":"1","method":"cf_subscribe_prewitness_swaps","params":["Btc", "Eth"]}
-# docs seem wrong on params, whereas with the "from_asset" .... "to_asset" faomatting the calls returns
+# docs seem wrong on params, whereas with the "from_asset" .... "to_asset" formatting the
+# websocket returns a subscription message
 json_str_payload_prewitness_swaps_subscription = request_json(
     "cf_subscribe_prewitness_swaps", params={"from_asset": "ETH", "to_asset": "USDC"}
 )
