@@ -1,5 +1,6 @@
 import json
 import math
+import logging
 from typing import List
 
 """
@@ -35,14 +36,8 @@ floor_to_integer((10000 * 10^6 / 10^18) * 2^128) = 34028236692093846346337460743
 Note the 10^6 is 1 USDC is USDC's smallest unit, 10^18 is 1 ETH in ETH's smallest unit (wei), 
 and the 128 in 2^128 in the number of fractional bits in the price, which as stated above is 128.
 """
+
 ASSETS_PRECISION = {"ETH": 10**18, "USDC": 10**6}
-
-example_message_price = '{"jsonrpc":"2.0","method":"cf_subscribe_pool_price","params":{"subscription":"WyWzpPPkLIV8NErb","result":{"price":"0x393d4b7e97617d02dd59df31a5a9","sqrt_price":"0x790d00e1da61e22eda2ba9","tick":-125890}}}'
-example_message_liquidity = "{'jsonrpc': '2.0', 'result': {'limit_orders': {'asks': [{'tick': 679408, 'amount': '0x64'}], 'bids': [{'tick': -230271, 'amount': '0x15ef3c0'}, {'tick': -199320, 'amount': '0x5f5e100'}]}, 'range_orders': [{'tick': -887272, 'liquidity': '0x142bd6ddc3906'}, {'tick': -253298, 'liquidity': '0x14420f0c7e9bf'}, {'tick': -246366, 'liquidity': '0x142bd6ddc3906'}, {'tick': -207244, 'liquidity': '0x1c8d871ac5fd3'}, {'tick': -203189, 'liquidity': '0x142bd6ddc3906'}, {'tick': -197638, 'liquidity': '0x1b27292ee102e24a'}, {'tick': -197634, 'liquidity': '0x142bd6ddc3906'}, {'tick': -125818, 'liquidity': '0x7845a02cf8b98'}, {'tick': 887272, 'liquidity': '0x0'}]}, 'id': 1}"
-example_message_liquidity = example_message_liquidity.replace("'", '"')
-
-price_message_dictionary = json.loads(example_message_price)
-liquidity_message_dictionary = json.loads(example_message_liquidity)
 
 
 def hex_to_decimal(hex_string: str):
@@ -75,26 +70,53 @@ class OrderBook:
         self.quote_asset = quote_asset
         self.limit_price_points = {"asks": {}, "bids": {}}
         self.range_price_points = []
-        self.bid_max_tick = -887272
-        self.ask_min = 887272
-        self.limit_orders_ids = {"asks": {}, "bids": {}}
+        self.bid_max_tick = -887272  # initialization value as min possible
+        self.ask_min_tick = 887272  # initialization value as max possible
 
     def populate_from_liquidity_payload(self, liquidity_payload: dict) -> None:
-        """ """
+        """
+        Taking the whole liquidity payload from cf_pool_liquidity
+        and repopulating the data structures
+        There is no real way to subscribe/query diffs or single order feeds
+        or to save real orders with priority, for the same tick for example
+        """
+        self.limit_price_points = {"asks": {}, "bids": {}}
+        self.range_price_points = []
         self.range_price_points = liquidity_payload["result"]["range_orders"]
-        for order in liquidity_payload["result"]["limit_orders"]:
-            pass
+        try:
+            for order in liquidity_payload["result"]["limit_orders"]["asks"]:
+                self.limit_price_points["asks"][order["tick"]] = order["amount"]
+        except KeyError:
+            logging.info("missing limit asks in liquidity returned payload")
+        try:
+            for order in liquidity_payload["result"]["limit_orders"]["bids"]:
+                self.limit_price_points["bids"][order["tick"]] = order["amount"]
+        except KeyError:
+            logging.info("missing limit bids in liquidity returned payload")
 
+    # the below two methods I am not quite sure who they could be implemented
+    # as they assume and id lookup and implicitly the account as well if I understand correctly
     def add_range_order(self, id: int, tick_range: List[int], size: int):
-        """ """
+        """
+        - base_asset
+        - quote_asset
+        - id
+        - tick_range (Optional): A JSON array of two Ticks,
+        representing the lower and upper bound of the order's price range.
+          Must be specified if no range order with the specified id exists in this pool.
+          If not specified, the tick range of the existing order with the same id will be used.
+        - size
+        - wait_for
+        """
         pass
 
     def add_limit_order(self, id: int, side: str, sell_amont: int, tick: int = None):
         """
-        side:
-        id:
-        tick:  (Optional): The price of the limit order.
-        sell_amount: The amount of assets the limit order should sell. For "buy" orders, this is measured in the quote asset,
+        - side:
+        - id:
+        - tick:  (Optional): The price of the limit order.
+        - sell_amount: The amount of assets the limit order should sell. For "buy" orders,
+        this is measured in the quote asset,
         and for "sell" orders, this is measured in the base asset.
         """
         pass
