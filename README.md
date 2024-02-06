@@ -10,7 +10,7 @@ Creating a subscription framework and OrderBook as detailed in "Developer_Test_J
 - run `python framework.py` for default ETH to USDC or
 - run `python framework.py --base_asset=<your asset> --quote_asset=<your asset>`
   if the pool does not exist it will raise a KeyError from one of the error messages returned,
-  but from the logs should be clear that is the reason is the missing pool for that combination.
+  but from the logs should be clear that the reason is the missing pool for that combination.
   Maybe writing better error handling for the future.
 
 ## Run Tests

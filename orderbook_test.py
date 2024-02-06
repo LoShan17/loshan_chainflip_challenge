@@ -25,19 +25,22 @@ PRICE_PAYLOAD_REFERENCE = json.loads(PRICE_PAYLOAD_STRING)
 def test_orderbook_limits():
     order_book = OrderBook(base_asset="ETH", quote_asset="USDC")
     order_book.populate_book_from_liquidity_payload(LIQUIDITY_PAYLOAD_REFERENCE)
-    assert True
+    assert order_book.limit_price_points["asks"]
+    assert order_book.limit_price_points["bids"]
 
 
 def test_orderbook_ranges():
     order_book = OrderBook(base_asset="ETH", quote_asset="USDC")
     order_book.populate_book_from_liquidity_payload(LIQUIDITY_PAYLOAD_REFERENCE)
-    assert True
+    assert order_book.range_price_points[-246366] == "0x142bd6ddc3906"
+    assert order_book.range_price_points[-197638] == "0x1b27292ee102e24a"
 
 
 def test_orderbook_limit_top():
     order_book = OrderBook(base_asset="ETH", quote_asset="USDC")
     order_book.populate_book_from_liquidity_payload(LIQUIDITY_PAYLOAD_REFERENCE)
-    assert True
+    assert order_book.bid_max_tick == -198955
+    assert order_book.ask_min_tick == -138477
 
 
 def test_orderbook_price():
@@ -45,4 +48,33 @@ def test_orderbook_price():
     order_book.populate_last_price_from_price_payload(
         PRICE_PAYLOAD_REFERENCE["params"]["result"]
     )
+    assert order_book.last_price == "0x4df1cb6985c724bf6d02fc7059f"
+    assert order_book.last_tick == -150529
+
+
+def test_limit_price_addition():
+    order_book = OrderBook(base_asset="ETH", quote_asset="USDC")
+    order_book.populate_book_from_liquidity_payload(LIQUIDITY_PAYLOAD_REFERENCE)
+    order_book.add_limit_order()
+    assert True
+
+
+def test_limit_price_addition_better():
+    order_book = OrderBook(base_asset="ETH", quote_asset="USDC")
+    order_book.populate_book_from_liquidity_payload(LIQUIDITY_PAYLOAD_REFERENCE)
+    order_book.add_limit_order()
+    assert True
+
+
+def test_range_price_addition():
+    order_book = OrderBook(base_asset="ETH", quote_asset="USDC")
+    order_book.populate_book_from_liquidity_payload(LIQUIDITY_PAYLOAD_REFERENCE)
+    order_book.add_range_order()
+    assert True
+
+
+def test_range_price_addition_1_overlapping():
+    order_book = OrderBook(base_asset="ETH", quote_asset="USDC")
+    order_book.populate_book_from_liquidity_payload(LIQUIDITY_PAYLOAD_REFERENCE)
+    order_book.add_range_order()
     assert True

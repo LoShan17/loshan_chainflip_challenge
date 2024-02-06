@@ -151,15 +151,16 @@ class OrderBook:
         min_from_range = self.range_price_points.minKey(tick_range[0])
         # maxKey returns max smaller or equal key
         max_from_range = self.range_price_points.maxKey(tick_range[1])
+
         if tick_range[0] not in self.range_price_points.keys():
             first_previous_key = self.range_price_points.maxKey(tick_range[0])
             self.range_price_points[tick_range[0]] = sum_hexes_quantities(
                 self.range_price_point[first_previous_key], size
             )
         if tick_range[1] not in self.range_price_points.keys():
-            last_previous_key = self.range_price_points.maxKey(tick_range[1])
+            last_following_key = self.range_price_points.maxKey(tick_range[1])
             self.range_price_points[tick_range[1]] = sum_hexes_quantities(
-                self.range_price_point[last_previous_key], size
+                self.range_price_point[last_following_key], size
             )
         for key in self.range_price_points.keys():
             if key <= max_from_range and key >= min_from_range:
