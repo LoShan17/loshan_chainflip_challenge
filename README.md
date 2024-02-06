@@ -23,13 +23,15 @@ Creating a subscription framework and OrderBook as detailed in "Developer_Test_J
   as an example from a price update message from ETH/USDC
 
   - I tried from the tick using the functions in order book:
-    In [23]: tick_to_price(-153861, ASSETS_PRECISION['ETH'], ASSETS_PRECISION['USDC'])
-    Out[23]: 208082.59467484668
+
+    - `In [23]: tick_to_price(-153861, ASSETS_PRECISION['ETH'], ASSETS_PRECISION['USDC'])`
+    - `Out[23]: 208082.59467484668`
 
   - I tried from the price representation:
-    In [28]: price_returned = int("0x37db83b756d0a7932f35b7479ed", 16)
-    In [29]: price_to_market_price(price_returned, ASSETS_PRECISION['ETH'], ASSETS_PRECISION['USDC'])
-    Out[29]: 208085.32304775115
+
+    - `In [28]: price_returned = int("0x37db83b756d0a7932f35b7479ed", 16)`
+    - `In [29]: price_to_market_price(price_returned, ASSETS_PRECISION['ETH'], ASSETS_PRECISION['USDC'])`
+    - `Out[29]: 208085.32304775115`
 
     the 2 seems consistent but I still don't quite understand how the get the 2360.19 ETH/USDC
     price of today as I am writing.
