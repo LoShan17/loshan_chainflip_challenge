@@ -43,14 +43,6 @@ json_str_payload_pool_price_subscription = request_json(
     "cf_subscribe_pool_price", params={"from_asset": "ETH", "to_asset": "USDC"}
 )
 
-# examples of parsing responses
-# example_message_price = '{"jsonrpc":"2.0","method":"cf_subscribe_pool_price","params":{"subscription":"WyWzpPPkLIV8NErb","result":{"price":"0x393d4b7e97617d02dd59df31a5a9","sqrt_price":"0x790d00e1da61e22eda2ba9","tick":-125890}}}'
-# example_message_liquidity = "{'jsonrpc': '2.0', 'result': {'limit_orders': {'asks': [{'tick': 679408, 'amount': '0x64'}], 'bids': [{'tick': -230271, 'amount': '0x15ef3c0'}, {'tick': -199320, 'amount': '0x5f5e100'}]}, 'range_orders': [{'tick': -887272, 'liquidity': '0x142bd6ddc3906'}, {'tick': -253298, 'liquidity': '0x14420f0c7e9bf'}, {'tick': -246366, 'liquidity': '0x142bd6ddc3906'}, {'tick': -207244, 'liquidity': '0x1c8d871ac5fd3'}, {'tick': -203189, 'liquidity': '0x142bd6ddc3906'}, {'tick': -197638, 'liquidity': '0x1b27292ee102e24a'}, {'tick': -197634, 'liquidity': '0x142bd6ddc3906'}, {'tick': -125818, 'liquidity': '0x7845a02cf8b98'}, {'tick': 887272, 'liquidity': '0x0'}]}, 'id': 1}"
-# example_message_liquidity = example_message_liquidity.replace("'", '"')
-
-# price_message_dictionary = json.loads(example_message_price)
-# liquidity_message_dictionary = json.loads(example_message_liquidity)
-
 
 # again "params" definition doesn't seem to be correct in the docs
 # (pair_asset instead of quote_asset)
@@ -90,7 +82,7 @@ async def main(base_asset: str, quote_asset: str):
         async for message in ws:
             logging.info(message)
             message_dictionary = json.loads(message)
-            # if this message is a subscription response to either subscriptions
+            # If this message is a subscription response to either subscriptions
             # will make a call to cf_pool_liquidity either on price change or on prewitness_swap deposit
             if "method" in message_dictionary:
                 liquidity_dictionary = await query_pool_liquidity(

@@ -2,3 +2,4 @@ chainflip-perseverance
 *.log
 __pycache__
 *venv*
+*.vscode

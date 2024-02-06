@@ -149,26 +149,28 @@ class OrderBook:
         in this case only the size encoded as liquidity expressed as an hex is supported
         - wait_for
         """
-        # minKey returns min greater or equal key
-        min_from_range = self.range_price_points.minKey(tick_range[0])
-        # maxKey returns max smaller or equal key
-        max_from_range = self.range_price_points.maxKey(tick_range[1])
+        # minKey returns greater or equal key
+        right_from_0 = self.range_price_points.minKey(tick_range[0])
+        # maxKey returns smaller or equal key
+        left_from_1 = self.range_price_points.maxKey(tick_range[1] - 1)
+
+        if tick_range[1] not in self.range_price_points.keys():
+            last_previous_key = self.range_price_points.maxKey(tick_range[1] - 1)
+            self.range_price_points[tick_range[1]] = self.range_price_points[
+                last_previous_key
+            ]
+
+        for key in self.range_price_points.keys():
+            if key >= right_from_0 and key <= left_from_1:
+                self.range_price_points[key] = sum_hexes_quantities(
+                    [self.range_price_points[key], size]
+                )
 
         if tick_range[0] not in self.range_price_points.keys():
             first_previous_key = self.range_price_points.maxKey(tick_range[0])
             self.range_price_points[tick_range[0]] = sum_hexes_quantities(
                 [self.range_price_points[first_previous_key], size]
             )
-        if tick_range[1] not in self.range_price_points.keys():
-            last_following_key = self.range_price_points.maxKey(tick_range[1])
-            self.range_price_points[tick_range[1]] = sum_hexes_quantities(
-                [self.range_price_points[last_following_key], size]
-            )
-        for key in self.range_price_points.keys():
-            if key < max_from_range and key >= min_from_range:
-                self.range_price_points[key] = sum_hexes_quantities(
-                    [self.range_price_points[key], size]
-                )
 
     def add_limit_order(self, side: str, sell_amount: str, tick: int, id: int = 1):
         """

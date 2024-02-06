@@ -97,3 +97,22 @@ def test_range_price_addition_1_overlapping():
     assert order_book.range_price_points[-253298] == sum_hexes_quantities(
         ["0x989680", "0x14420f0c7e9bf"]
     )
+
+
+def test_range_price_addition_0_overlapping():
+    order_book = OrderBook(base_asset="ETH", quote_asset="USDC")
+    order_book.populate_book_from_liquidity_payload(LIQUIDITY_PAYLOAD_REFERENCE)
+    order_book.add_range_order(tick_range=[-197638, -100000], size="0x989680")
+    assert -197638 in order_book.range_price_points.keys()
+
+    assert order_book.range_price_points[-197638] == sum_hexes_quantities(
+        ["0x1b27292ee102e24a", "0x989680"]
+    )
+    assert order_book.range_price_points[-125818] == sum_hexes_quantities(
+        ["0x7845a02cf8b98", "0x989680"]
+    )
+    print(order_book.range_price_points.maxKey(-100000))
+    assert order_book.range_price_points[-100000] == "0x7845a02cf8b98"
+    assert order_book.range_price_points[-207244] == "0x1c8d871ac5fd3"
+    assert order_book.range_price_points[-246366] == "0x142bd6ddc3906"
+    assert order_book.range_price_points[-253298] == "0x14420f0c7e9bf"
