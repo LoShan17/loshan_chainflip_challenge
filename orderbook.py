@@ -1,7 +1,7 @@
-import json
 import math
 import logging
 from typing import List
+from BTrees.OOBTree import OOBTree
 
 """
 Amount
@@ -68,21 +68,25 @@ class OrderBook:
     def __init__(self, base_asset: str, quote_asset: str):
         self.base_asset = base_asset
         self.quote_asset = quote_asset
-        self.limit_price_points = {"asks": {}, "bids": {}}
-        self.range_price_points = []
+        self.limit_price_points = {"asks": OOBTree(), "bids": OOBTree()}
+        self.range_price_points = OOBTree()
+        self.last_price = None
+        self.last_tick = None
         self.bid_max_tick = -887272  # initialization value as min possible
         self.ask_min_tick = 887272  # initialization value as max possible
 
-    def populate_from_liquidity_payload(self, liquidity_payload: dict) -> None:
+    def populate_book_from_liquidity_payload(self, liquidity_payload: dict) -> None:
         """
         Taking the whole liquidity payload from cf_pool_liquidity
         and repopulating the data structures
         There is no real way to subscribe/query diffs or single order feeds
         or to save real orders with priority, for the same tick for example
         """
-        self.limit_price_points = {"asks": {}, "bids": {}}
-        self.range_price_points = []
-        self.range_price_points = liquidity_payload["result"]["range_orders"]
+        # resets them to empty as they will be repopulated
+        self.limit_price_points = {"asks": OOBTree(), "bids": OOBTree()}
+        self.range_price_points = OOBTree()
+
+        # populate limit orders
         try:
             for order in liquidity_payload["result"]["limit_orders"]["asks"]:
                 self.limit_price_points["asks"][order["tick"]] = order["amount"]
@@ -93,9 +97,22 @@ class OrderBook:
                 self.limit_price_points["bids"][order["tick"]] = order["amount"]
         except KeyError:
             logging.info("missing limit bids in liquidity returned payload")
+        # populate limit top of the book:
+        self.bid_max_tick = self.limit_price_points["bids"]
+        self.ask_min_tick = self.limit_price_points["asks"]
 
-    # the below two methods I am not quite sure who they could be implemented
-    # as they assume and id lookup and implicitly the account as well if I understand correctly
+        # populate range orders
+        for tick in liquidity_payload["result"]["range_orders"]:
+            self.range_price_points[tick["tick"]] = tick["liquidity"]
+
+    def populate_last_price_from_price_payload(self, price_payload: dict) -> None:
+        self.last_price = price_payload["price"]
+        self.last_tick = price_payload["tick"]
+
+    # the below two methods I am not quite sure who they could be implemented completely
+    # allowing for order amendments/cancellations with the current API infos
+    # as they assume and id lookup and implicitly the account as well, if I understand correctly
+    # I will cover just the base case of order addition
     def add_range_order(self, id: int, tick_range: List[int], size: int):
         """
         - base_asset

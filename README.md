@@ -7,7 +7,12 @@ Creating a subscription framework and OrderBook as detailed in "Developer_Test_J
 - `git clone` the repo locally
 - follow the instructions here for node spin up: https://github.com/chainflip-io/chainflip-perseverance
 - create venv out of requirements.txt
-- `python framework.py`
+- `python framework.py` for default ETH to USDC or
+- `python framework.py --base_asset=<your asset> --quote_asset=<your asset>`
+
+## Run Tests
+
+- `pytest` on the base folder will run all the orderbook tests
 
 ## Things I wasn't sure about:
 

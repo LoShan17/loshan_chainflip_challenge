@@ -1,6 +1,7 @@
 import asyncio
 import aiohttp
 import json
+import argparse
 import logging
 from orderbook import OrderBook
 
@@ -17,6 +18,17 @@ import websockets
 
 HTTP_URL = "http://localhost:9944"
 WS_URL = "ws://localhost:9944"
+
+
+def parse_arguments():
+    """
+    Basic argument parser to specify
+    base_asset and quote_asset
+    """
+    parser = argparse.ArgumentParser(description="chainflip framework argument parser")
+    parser.add_argument("--base_asset", type=str, default="ETH")
+    parser.add_argument("--quote_asset", type=str, default="USDC")
+    return parser.parse_args()
 
 
 # prewitnessed swaps subscription string json
@@ -63,12 +75,12 @@ async def query_pool_liquidity(
             return json.loads(await response.text())
 
 
-async def main():
+async def main(base_asset: str, quote_asset: str):
     """
     main subscription loop. The only 2 things that can be subscribed are prewitness_swaps and pool_price
     I can then query explicitly the liquidity pool when there is an update in either of them
     """
-    order_book = OrderBook(base_asset="ETH", quote_asset="USDC")
+    order_book = OrderBook(base_asset=base_asset, quote_asset=quote_asset)
     async with websockets.connect(WS_URL) as ws:
         logging.info("Inside the main subscription loop")
         await ws.send(json_str_payload_pool_price_subscription)
@@ -81,16 +93,22 @@ async def main():
             # if this message is a subscription response to either subscriptions
             # will make a call to cf_pool_liquidity either on price change or on prewitness_swap deposit
             if "method" in message_dictionary:
-                liquidity_dictionary = await query_pool_liquidity()
+                liquidity_dictionary = await query_pool_liquidity(
+                    {"base_asset": base_asset, "quote_asset": quote_asset}
+                )
                 logging.info(liquidity_dictionary)
-                order_book.populate_from_liquidity_payload(
+                order_book.populate_book_from_liquidity_payload(
                     liquidity_payload=liquidity_dictionary
                 )
                 logging.info(str(order_book))
 
 
 if __name__ == "__main__":
+    arguments = parse_arguments()
+    logging.info(f"Framework strating with arguments: {arguments}")
     try:
-        asyncio.get_event_loop().run_until_complete(main())
+        asyncio.get_event_loop().run_until_complete(
+            main(arguments.base_asset, arguments.quote_asset)
+        )
     except KeyboardInterrupt:
         logging.info("Keyboard exit received, exiting")
