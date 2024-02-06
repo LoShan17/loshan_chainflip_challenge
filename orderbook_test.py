@@ -1,5 +1,5 @@
 import json
-from orderbook import OrderBook
+from orderbook import OrderBook, sum_hexes_quantities
 
 LIQUIDITY_PAYLOAD_STRING = """
 {"jsonrpc":"2.0","result":{
@@ -55,26 +55,45 @@ def test_orderbook_price():
 def test_limit_price_addition():
     order_book = OrderBook(base_asset="ETH", quote_asset="USDC")
     order_book.populate_book_from_liquidity_payload(LIQUIDITY_PAYLOAD_REFERENCE)
-    order_book.add_limit_order()
-    assert True
+    order_book.add_limit_order(
+        side="sell", sell_amount="0x56bc75e2d63100000", tick=-128000
+    )
+    assert order_book.ask_min_tick == -138477
+    assert order_book.limit_price_points["asks"][-128000] == "0x56bc75e2d63100000"
 
 
 def test_limit_price_addition_better():
     order_book = OrderBook(base_asset="ETH", quote_asset="USDC")
     order_book.populate_book_from_liquidity_payload(LIQUIDITY_PAYLOAD_REFERENCE)
-    order_book.add_limit_order()
-    assert True
+    order_book.add_limit_order(side="buy", sell_amount="0x989680", tick=-180000)
+    assert order_book.bid_max_tick == -180000
+    assert order_book.limit_price_points["bids"][-180000] == "0x989680"
 
 
 def test_range_price_addition():
     order_book = OrderBook(base_asset="ETH", quote_asset="USDC")
     order_book.populate_book_from_liquidity_payload(LIQUIDITY_PAYLOAD_REFERENCE)
-    order_book.add_range_order()
-    assert True
+    order_book.add_range_order(tick_range=[-110000, 0], size="0x989680")
+    assert -110000 in order_book.range_price_points.keys()
+    assert 0 in order_book.range_price_points.keys()
 
 
 def test_range_price_addition_1_overlapping():
     order_book = OrderBook(base_asset="ETH", quote_asset="USDC")
     order_book.populate_book_from_liquidity_payload(LIQUIDITY_PAYLOAD_REFERENCE)
-    order_book.add_range_order()
-    assert True
+    order_book.add_range_order(tick_range=[-260000, -207244], size="0x989680")
+    assert -260000 in order_book.range_price_points.keys()
+
+    assert order_book.range_price_points[-197638] == "0x1b27292ee102e24a"
+    assert order_book.range_price_points[-125818] == "0x7845a02cf8b98"
+
+    assert order_book.range_price_points[-260000] == sum_hexes_quantities(
+        ["0x989680", "0x142bd6ddc3906"]
+    )
+    assert order_book.range_price_points[-207244] == "0x1c8d871ac5fd3"
+    assert order_book.range_price_points[-246366] == sum_hexes_quantities(
+        ["0x989680", "0x142bd6ddc3906"]
+    )
+    assert order_book.range_price_points[-253298] == sum_hexes_quantities(
+        ["0x989680", "0x14420f0c7e9bf"]
+    )

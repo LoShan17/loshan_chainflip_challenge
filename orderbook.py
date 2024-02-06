@@ -133,7 +133,7 @@ class OrderBook:
     # allowing for order amendments/cancellations with the current API infos
     # as they assume and order ID lookup and implicitly the LP account as well, if I understand correctly.
     # I will cover just the base case of order addition
-    def add_range_order(self, id: int, tick_range: List[int], size: int):
+    def add_range_order(self, tick_range: List[int], size: str, id: int = 1):
         """
         - base_asset
         - quote_asset
@@ -142,7 +142,9 @@ class OrderBook:
         representing the lower and upper bound of the order's price range.
           Must be specified if no range order with the specified id exists in this pool.
           If not specified, the tick range of the existing order with the same id will be used.
-        - size: Encoded as JSON, depending on if you want to specify the "size" as amount ranges or liquidity,
+        - size: An integer encoded as a big-endian hex string
+        this is only the Liquidity parameter coming from:
+        Encoded as JSON, depending on if you want to specify the "size" as amount ranges or liquidity,
         theses can be encoded like this:{"Liquidity": {"liquidity": <liquidity>}}
         in this case only the size encoded as liquidity expressed as an hex is supported
         - wait_for
@@ -155,25 +157,26 @@ class OrderBook:
         if tick_range[0] not in self.range_price_points.keys():
             first_previous_key = self.range_price_points.maxKey(tick_range[0])
             self.range_price_points[tick_range[0]] = sum_hexes_quantities(
-                self.range_price_point[first_previous_key], size
+                [self.range_price_points[first_previous_key], size]
             )
         if tick_range[1] not in self.range_price_points.keys():
             last_following_key = self.range_price_points.maxKey(tick_range[1])
             self.range_price_points[tick_range[1]] = sum_hexes_quantities(
-                self.range_price_point[last_following_key], size
+                [self.range_price_points[last_following_key], size]
             )
         for key in self.range_price_points.keys():
-            if key <= max_from_range and key >= min_from_range:
+            if key < max_from_range and key >= min_from_range:
                 self.range_price_points[key] = sum_hexes_quantities(
-                    self.range_price_point[key], size
+                    [self.range_price_points[key], size]
                 )
 
-    def add_limit_order(self, id: int, side: str, sell_amount: int, tick: int = None):
+    def add_limit_order(self, side: str, sell_amount: str, tick: int, id: int = 1):
         """
         - side: It can have two values either "buy" or "sell".
         - id: arbitrary ID from the LP
-        - tick:  (Optional): The price of the limit order.
+        - tick: The price of the limit order. (this is not optional anymore as this only adds orders)
         - sell_amount: The amount of assets the limit order should sell.
+        An integer encoded as a big-endian hex string
         For "buy" orders, this is measured in the quote asset,
         and for "sell" orders, this is measured in the base asset.
         """

@@ -33,8 +33,8 @@ Creating a subscription framework and OrderBook as detailed in "Developer_Test_J
     - `In [29]: price_to_market_price(price_returned, ASSETS_PRECISION['ETH'], ASSETS_PRECISION['USDC'])`
     - `Out[29]: 208085.32304775115`
 
-    the 2 seems consistent but I still don't quite understand how the get the 2360.19 ETH/USDC
-    price of today as I am writing.
+    the 2 seems consistent but I still don't quite understand how to get the 2360.19 ETH/USDC
+    standard price representation of today as I am writing.
 
     I think the OrderBook logic should still work on the generalized tick model when inserting orders.
 
