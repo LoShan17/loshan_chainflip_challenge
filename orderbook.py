@@ -66,6 +66,12 @@ def price_to_market_price(
 
 
 class OrderBook:
+    """
+    In general to keep track of the Book BTree maps are very efficient data strcutures.
+    They work like maps in term of orders retrieval granting O(1) retrieval on keys.
+    They insert in log(n) as they insert keeping the sorting and help with iterations
+    when looking for the highest available bid/lowest available ask
+    """
 
     def __init__(self, base_asset: str, quote_asset: str):
         self.base_asset = base_asset
@@ -99,9 +105,9 @@ class OrderBook:
                 self.limit_price_points["bids"][order["tick"]] = order["amount"]
         except KeyError:
             logging.info("missing limit bids in liquidity returned payload")
-        # populate limit top of the book:
-        self.bid_max_tick = self.limit_price_points["bids"]
-        self.ask_min_tick = self.limit_price_points["asks"]
+        # populate limit top of the book, as it is a global static update it is ok just to overwrite:
+        self.bid_max_tick = list(self.limit_price_points["bids"].keys())[-1]
+        self.ask_min_tick = list(self.limit_price_points["asks"].keys())[0]
 
         # populate range orders
         for tick in liquidity_payload["result"]["range_orders"]:
@@ -115,28 +121,29 @@ class OrderBook:
         self.last_price = price_payload["price"]
         self.last_tick = price_payload["tick"]
 
-    # the below two methods I am not quite sure who they could be implemented completely
+    # the below two methods I am not quite sure how they could be implemented completely, given this API
     # allowing for order amendments/cancellations with the current API infos
-    # as they assume and id lookup and implicitly the account as well, if I understand correctly
+    # as they assume and order ID lookup and implicitly the LP account as well, if I understand correctly
     # I will cover just the base case of order addition
     def add_range_order(self, id: int, tick_range: List[int], size: int):
         """
         - base_asset
         - quote_asset
-        - id
+        - id: arbitrary ID from the LP
         - tick_range (Optional): A JSON array of two Ticks,
         representing the lower and upper bound of the order's price range.
           Must be specified if no range order with the specified id exists in this pool.
           If not specified, the tick range of the existing order with the same id will be used.
-        - size
+        - size: Encoded as JSON, depending on if you want to specify the "size" as amount ranges or liquidity,
+        theses can be encoded like this:{"Liquidity": {"liquidity": <liquidity>}}
         - wait_for
         """
         pass
 
     def add_limit_order(self, id: int, side: str, sell_amont: int, tick: int = None):
         """
-        - side:
-        - id:
+        - side: It can have two values either "buy" or "sell".
+        - id: arbitrary ID from the LP
         - tick:  (Optional): The price of the limit order.
         - sell_amount: The amount of assets the limit order should sell. For "buy" orders,
         this is measured in the quote asset,
@@ -150,11 +157,17 @@ class OrderBook:
         """
         return "".join(
             [
-                "Book range price points: ",
-                str(self.range_price_points),
+                "Book range price points: \n",
+                ", \n".join([str(x) for x in self.range_price_points.items()][::-1]),
                 "\n",
                 "Book limit orders: ",
-                str(self.limit_price_points),
+                "\n",
+                "BIDs --- ASKs" "\n",
+                str(list(self.limit_price_points["bids"].items()))
+                + " ---- "
+                + str(list(self.limit_price_points["asks"].items())),
+                "\n",
+                f"with limit TOB: bid {self.bid_max_tick} - ask {self.ask_min_tick}"
                 "\n",
                 "Book last price and tick -> ",
                 f"price: {self.last_price}, tick: {self.last_tick}",
