@@ -4,6 +4,8 @@ from typing import List
 from BTrees.OOBTree import OOBTree
 
 """
+NOTES from the docs:
+
 Amount
 An integer encoded as a big-endian hex string, between 0 and 2^128 - 1, 
 representing a quantity of a token in it's smallest unit.
@@ -106,6 +108,10 @@ class OrderBook:
             self.range_price_points[tick["tick"]] = tick["liquidity"]
 
     def populate_last_price_from_price_payload(self, price_payload: dict) -> None:
+        """
+        populate last price and last tick from the
+        price subscription payload
+        """
         self.last_price = price_payload["price"]
         self.last_tick = price_payload["tick"]
 
@@ -149,5 +155,8 @@ class OrderBook:
                 "\n",
                 "Book limit orders: ",
                 str(self.limit_price_points),
+                "\n",
+                "Book last price and tick -> ",
+                f"price: {self.last_price}, tick: {self.last_tick}",
             ]
         )

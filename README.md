@@ -6,9 +6,12 @@ Creating a subscription framework and OrderBook as detailed in "Developer_Test_J
 
 - `git clone` the repo locally
 - follow the instructions here for node spin up: https://github.com/chainflip-io/chainflip-perseverance
-- create venv out of requirements.txt
-- `python framework.py` for default ETH to USDC or
-- `python framework.py --base_asset=<your asset> --quote_asset=<your asset>`
+- create venv (I used python 3.10.12) and install requirements.txt
+- run `python framework.py` for default ETH to USDC or
+- run `python framework.py --base_asset=<your asset> --quote_asset=<your asset>`
+  if the pool does not exist it will raise a KeyError, but from the logs
+  should be clear that is the reason is the missing pool for that combination.
+  Maybe writing better error handling for the future.
 
 ## Run Tests
 

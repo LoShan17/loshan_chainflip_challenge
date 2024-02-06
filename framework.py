@@ -3,6 +3,8 @@ import aiohttp
 import json
 import argparse
 import logging
+from jsonrpcclient import request_json, request
+import websockets
 from orderbook import OrderBook
 
 logging.basicConfig(
@@ -11,9 +13,6 @@ logging.basicConfig(
     filename="chainflip_framework.log",
     format="%(asctime)s %(message)s",
 )
-
-from jsonrpcclient import request_json, request
-import websockets
 
 
 HTTP_URL = "http://localhost:9944"
@@ -100,6 +99,11 @@ async def main(base_asset: str, quote_asset: str):
                 order_book.populate_book_from_liquidity_payload(
                     liquidity_payload=liquidity_dictionary
                 )
+                # populating lasts if the message is coming from "cf_subscribe_pool_price"
+                if "cf_subscribe_pool_price" == message_dictionary["method"]:
+                    order_book.populate_last_price_from_price_payload(
+                        message_dictionary["params"]["result"]
+                    )
                 logging.info(str(order_book))
 
 
